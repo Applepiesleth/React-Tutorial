@@ -48,6 +48,7 @@ class Game extends React.Component {
             history: [{
                 squares: Array(9).fill(null),
             }],
+            historyCoords: Array(9).fill(null),
             stepNumber: 0,
             xIsNext: true,
         };
@@ -55,18 +56,22 @@ class Game extends React.Component {
 
     handleClick(i) {
         const history = this.state.history.slice(0, this.state.stepNumber + 1);
+        const historyCoords = this.state.historyCoords.slice(0, this.state.stepNumber + 1);
         const current = history[history.length - 1];
         const squares = current.squares.slice();
         if (calculateWinner(squares) || squares[i]) {
             return;
         }
         squares[i] = this.state.xIsNext ? 'X' : 'O';
+        historyCoords[this.state.stepNumber + 1] = i;
         this.setState({
             history: history.concat([{
                 squares: squares,
             }]),
+            historyCoords: historyCoords,
             stepNumber: history.length,
             xIsNext: !this.state.xIsNext,
+            
         });
     }
 
@@ -79,12 +84,14 @@ class Game extends React.Component {
 
     render() {
         const history = this.state.history;
+        const historyCoords = this.state.historyCoords;
         const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
 
         const moves = history.map((step, move) => {
             const desc = move ?
-                'Go to move #' + move :
+                'Go to move #' + move + ", " + (move % 2 === 1 ? "X" : "O") +
+                " at [" + historyCoords[move] % 3 + "," + Math.floor(historyCoords[move] / 3) + "]":
                 'Go to game start';
             return (
                 <li key={move}>
@@ -97,7 +104,11 @@ class Game extends React.Component {
         if (winner) {
             status = 'Winner: ' + winner;
         } else {
-            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+            if (this.state.stepNumber === 9) {
+                status = 'Draw!';
+            } else {
+                status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+            }
         }
 
         return (
